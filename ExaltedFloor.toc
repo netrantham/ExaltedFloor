@@ -1,0 +1,8 @@
+##Interface: 100105
+##Version: 1.0.1
+##Title: Floor Bros
+##Notes: New reps with new floors.
+##Author: nkttennessee
+##SavedVariables: FloorDB
+
+ExaltedFloor.lua
