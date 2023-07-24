@@ -17,63 +17,67 @@ function f:ADDON_LOADED(event, addOnName)
     end
 end
 
-function f:PLAYER_DEAD(self, event)
+function f:PLAYER_DEAD()
     --If died in Aberrus then increase Aberrus Floor Rep
-    local deadInParty = 0
-    if GetZoneText() == "Aberrus, the Shadowed Crucible" then
-        --loop through raid group, if a member is dead increment deadParty
-        deadInParty = DeadInParty()
-        --increase rep based on amount of deadParty members
-        if deadInParty == 1 then--1st death in party = 100 rep
-            FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 100
-            DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 100.", 0.5,0.5,0.9)
-        elseif deadInParty == 2 then--2nd death in party = 60 rep
-            FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 60
-            DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 60.", 0.5,0.5,0.9)
-        elseif deadInParty < 6 then--3rd, 4th, 5th death in party = 40 rep
-            FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 40
-            DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 40.", 0.5,0.5,0.9)
-        else--else = 20 rep
-            FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 20
-            DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 20.", 0.5,0.5,0.9)
+    if HasPetUI() == false then --Makes pets not count as multiple player deaths
+        local deadInParty = 0
+        if GetZoneText() == "Aberrus, the Shadowed Crucible" then
+            --loop through raid group, if a member is dead increment deadParty
+            deadInParty = DeadInParty()
+            --increase rep based on amount of deadParty members
+            if deadInParty == 1 then--1st death in party = 100 rep
+                FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 100
+                DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 100.", 0.5,0.5,0.9)
+            elseif deadInParty == 2 then--2nd death in party = 60 rep
+                FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 60
+                DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 60.", 0.5,0.5,0.9)
+            elseif deadInParty < 6 then--3rd, 4th, 5th death in party = 40 rep
+                FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 40
+                DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 40.", 0.5,0.5,0.9)
+            else--else = 20 rep
+                FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 20
+                DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 20.", 0.5,0.5,0.9)
+            end
+        elseif GetZoneText() == "The Underrot" then
+            deadInParty = DeadInParty()
+            local gain = addDungeonRep(1,deadInParty)
+            DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[1].." floor increased by "..gain..".", 0.5,0.5,0.9)
+        elseif GetZoneText() == "Neltharus" then
+            deadInParty = DeadInParty()
+            local gain = addDungeonRep(2,deadInParty)
+            DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[2].." floor increased by "..gain..".", 0.5,0.5,0.9)
+        elseif GetZoneText() == "Brackenhide Hollow" then
+            deadInParty = DeadInParty()
+            local gain = addDungeonRep(3,deadInParty)
+            DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[3].." floor increased by "..gain..".", 0.5,0.5,0.9)        
+        elseif GetZoneText() == "Halls of Infusion" then
+            deadInParty = DeadInParty()
+            local gain = addDungeonRep(4,deadInParty)
+            DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[4].." floor increased by "..gain..".", 0.5,0.5,0.9)
+        elseif GetZoneText() == "Uldaman" then
+            deadInParty = DeadInParty()
+            local gain = addDungeonRep(5,deadInParty)
+            DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[5].." floor increased by "..gain..".", 0.5,0.5,0.9)
+        elseif GetZoneText() == "Freehold" then
+            deadInParty = DeadInParty()
+            local gain = addDungeonRep(6,deadInParty)
+            DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[6].." floor increased by "..gain..".", 0.5,0.5,0.9)
+        elseif GetZoneText() == "The Vortex Pinnacle" then
+            deadInParty = DeadInParty()
+            local gain = addDungeonRep(7,deadInParty)
+            DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[7].." floor increased by "..gain..".", 0.5,0.5,0.9)
+        elseif GetZoneText() == "Neltharion's Lair" then
+            deadInParty = DeadInParty()
+            local gain = addDungeonRep(8,deadInParty)
+            DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[8].." floor increased by "..gain..".", 0.5,0.5,0.9)
+        elseif GetZoneText() == "Dawn of the Infinite" then
+            deadInParty = DeadInParty()
+            local gain = addDungeonRep(9,deadInParty)
+            DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[9].." floor increased by "..gain..".", 0.5,0.5,0.9)
         end
-    elseif GetZoneText() == "The Underrot" then
-        deadInParty = DeadInParty()
-        local gain = addDungeonRep(1,deadInParty)
-        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[1].." floor increased by 20.", 0.5,0.5,0.9)
-    elseif GetZoneText() == "Neltharus" then
-        deadInParty = DeadInParty()
-        local gain = addDungeonRep(2,deadInParty)
-        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[2].." floor increased by "..gain..".", 0.5,0.5,0.9)
-    elseif GetZoneText() == "Brackenhide Hollow" then
-        deadInParty = DeadInParty()
-        local gain = addDungeonRep(3,deadInParty)
-        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[3].." floor increased by "..gain..".", 0.5,0.5,0.9)        
-    elseif GetZoneText() == "Halls of Infusion" then
-        deadInParty = DeadInParty()
-        local gain = addDungeonRep(4,deadInParty)
-        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[4].." floor increased by "..gain..".", 0.5,0.5,0.9)
-    elseif GetZoneText() == "Uldaman" then
-        deadInParty = DeadInParty()
-        local gain = addDungeonRep(5,deadInParty)
-        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[5].." floor increased by "..gain..".", 0.5,0.5,0.9)
-    elseif GetZoneText() == "Freehold" then
-        deadInParty = DeadInParty()
-        local gain = addDungeonRep(6,deadInParty)
-        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[6].." floor increased by "..gain..".", 0.5,0.5,0.9)
-    elseif GetZoneText() == "The Vortex Pinnacle" then
-        deadInParty = DeadInParty()
-        local gain = addDungeonRep(7,deadInParty)
-        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[7].." floor increased by "..gain..".", 0.5,0.5,0.9)
-    elseif GetZoneText() == "Neltharion's Lair" then
-        deadInParty = DeadInParty()
-        local gain = addDungeonRep(8,deadInParty)
-        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[8].." floor increased by "..gain..".", 0.5,0.5,0.9)
-    elseif GetZoneText() == "Dawn of the Infinite" then
-        deadInParty = DeadInParty()
-        local gain = addDungeonRep(9,deadInParty)
-        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[9].." floor increased by "..gain..".", 0.5,0.5,0.9)
     end
+
+
 end
 
 --Reduces amount of lines needed to type, increases dungeon rep and returns the rep increase amount
@@ -186,7 +190,7 @@ raidbtn:SetScript("OnClick",function(self,button)
     end
 end)
 --Rep Bar for Aberrus
-local aberrusFloor = CreateFrame("Frame", nil, raidFrame, "ReputationBarTemplate")
+local aberrusFloor = CreateFrame("Button", nil, raidFrame, "ReputationBarTemplate")
 aberrusFloor:SetSize(270, 20)
 aberrusFloor.Container:SetAllPoints()
 aberrusFloor:SetPoint("TOPLEFT", insetFrame, 30, -25)
@@ -211,6 +215,8 @@ aberrusFloor:SetScript("OnLeave", function(self)
     self.Container.ReputationBar.Highlight1:Hide()
     self.Container.ReputationBar.Highlight2:Hide()
     GameTooltip:Hide()
+end)
+aberrusFloor:SetScript("OnClick", function(self)
 end)
 
 -------------------
@@ -243,7 +249,7 @@ end)
 --Rep Bars for the dungeons
 local dungBars = {}
 for i = 1, 9 do
-    dungBars[i] = CreateFrame("Frame", nil, dungFrame, "ReputationBarTemplate")
+    dungBars[i] = CreateFrame("Button", nil, dungFrame, "ReputationBarTemplate")
     dungBars[i]:SetSize(270, 20)
     dungBars[i].Container:SetAllPoints()
     dungBars[i]:SetPoint("TOPLEFT", dungFrame, 30, -25*i)
@@ -268,6 +274,8 @@ for i = 1, 9 do
         self.Container.ReputationBar.Highlight1:Hide()
         self.Container.ReputationBar.Highlight2:Hide()
         GameTooltip:Hide()
+    end)
+    dungBars[i]:SetScript("OnClick", function(self)
     end)
 end
 
