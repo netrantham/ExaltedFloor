@@ -1,5 +1,5 @@
 ##Interface: 100105
-##Version: 1.0.2
+##Version: 1.0.3
 ##Title: Floor Bros
 ##Notes: New reps with new floors.
 ##Author: nkttennessee
