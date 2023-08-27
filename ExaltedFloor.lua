@@ -7,15 +7,18 @@ end
 --used in PLAYER_DEAD compared to GetZoneText()
 local dungNames = {"Brackenhide Hollow", "Dawn of the Infinite", "Freehold", "Halls of Infusion", "Neltharion's Lair", "Neltharus", "Uldaman", "The Underrot", "The Vortex Pinnacle"}
 local bgNames = {"Arathi Basin", "Battle for Gilneas", "Deepwind Gorge", "Eye of the Storm", "Seething Shore", "Silvershard Mines", "Temple of Kotmogu", "Twin Peaks", "Warsong Gulch", "Alterac Valley", "Ashran","Battle for Wintergrasp","Isle of Conquest"}
---used to access the appropriate index in FloorDB.Dungeons, likely a better way
+local arenaNames = {"Ashamane's Fall", "Black Rook Hold Arena", "Blade's Edge Arena", "Dalaran Sewers", "Empyrean Domain", "Enigma Crucible", "Hook Point", "Maldraxxus Colliseum", "Mugambala", "Nagrand Arena", "Nokhudon Proving Grounds", "Ruins of Lordaeron", "The Robodrome", "Tiger's Peak", "Tol'viron Arena"}
+--used to access the appropriate index in FloorDB.Dungeons, likely a better way than parallel arrays
 local indexNames = {"Brackenhide", "DawnInfinite", "Freehold", "HOI", "NelthLair", "Neltharus", "Uldaman", "Underrot", "Vortex"}
 local bgIndexNames = {"Arathi", "Gilneas", "Deepwind", "EotS", "SeethingShore", "Silvershard", "Kotmogu", "TwinPeaks", "Warsong", "Alterac", "Ashran","Wintergrasp","IoC"}
+local arenaIndexNames = {"Ashmane","BRHArena","BEArena","Sewers","Empyrean","Enigma","HookPoint","Maldraxxus","Mugambala","Nagrand","Nokhudon","RoLord","Robodrome","TigerPeak", "Tolviron"}
 function f:ADDON_LOADED(event, addOnName)
     if addOnName == "ExaltedFloor" then
         FloorDB = FloorDB or {}--initialize DB
         FloorDB.Raids = FloorDB.Raids or {Aberrus = 0}
         FloorDB.Dungeons = FloorDB.Dungeons or {Underrot = 0, Neltharus = 0, Brackenhide = 0, HOI = 0, Uldaman = 0, Freehold = 0, Vortex = 0, NelthLair = 0, DawnInfinite = 0}
         FloorDB.Bgs = FloorDB.Bgs or {Arathi = 0, Gilneas = 0, Deepwind = 0, EotS = 0, SeethingShore = 0, Silvershard = 0, Kotmogu = 0, TwinPeaks = 0, Warsong = 0, Alterac = 0, Ashran = 0,Wintergrasp = 0,IoC = 0}
+        FloorDB.Arenas = FloorDB.Arenas or {Ashmane = 0,BRHArena = 0,BEArena = 0,Sewers = 0,Empyrean = 0,Enigma = 0,HookPoint = 0,Maldraxxus = 0,Mugambala = 0,Nagrand = 0,Nokhudon = 0,RoLord = 0,Robodrome = 0,TigerPeak = 0, Tolviron = 0}
         print("Floor loaded.")
     end
 end
@@ -42,26 +45,38 @@ function f:PLAYER_DEAD()
                 FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 20
                 DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 20.", 0.5,0.5,0.9)
             end
+            return
         end
-        --check the dungeon list
-        for i = 1, 9 do
-            if zoneText == dungNames[i] then
-                deadInParty = DeadInParty()
-                local gain = addDungeonRep(i,deadInParty)
-                DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[i].." floor increased by "..gain..".", 0.5,0.5,0.9)
+        --if died in the dungeons, bgs, or arenas
+        for i = 1, 15 do --arenas
+            if i <= 13 then --battlegrounds
+                if i <= 9 then --dungeons
+                    if zoneText == dungNames[i] then
+                        deadInParty = DeadInParty()
+                        local gain = addDungeonRep(i,deadInParty)
+                        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[i].." floor increased by "..gain..".", 0.5,0.5,0.9)
+                        return
+                    end
+                end
+                if zoneText == bgNames[i] then
+                    --add flat rate of 50, bg deaths can be quite complex with a high variance in party members so I'm making the increment a flat rate
+                    FloorDB.Bgs[bgIndexNames[i]] = FloorDB.Bgs[bgIndexNames[i]] + 50
+                    DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..bgNames[i].." floor increased by 50.", 0.5,0.5,0.9)
+                    return
+                end
             end
-        end
-        --check the battleground list, could save time by combining for loops but would slightly hurt readability
-        for i = 1, 13 do
-            if zoneText == bgNames[i] then
-                --add flat rate of 50, bg deaths can be quite complex with a high variance in party members so I'm making the increment a flat rate
-                FloorDB.Bgs[bgIndexNames[i]] = FloorDB.Bgs[bgIndexNames[i]] + 50
-                DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..bgNames[i].." floor increased by 50.", 0.5,0.5,0.9)
+            if zoneText == arenaNames[i] then
+                if DeadInParty() == 1 then --first to die gains 100 rep
+                    FloorDB.Arenas[arenaIndexNames[i]] = FloorDB.Arenas[arenaIndexNames[i]] + 100
+                    DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..arenaNames[i].." floor increased by 100.", 0.5,0.5,0.9)
+                else --others gain 30
+                    FloorDB.Arenas[arenaIndexNames[i]] = FloorDB.Arenas[arenaIndexNames[i]] + 30
+                    DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..arenaNames[i].." floor increased by 30.", 0.5,0.5,0.9)
+                end
+                return
             end
         end
     end
-
-
 end
 
 --Reduces amount of lines needed to type, increases dungeon rep and returns the rep increase amount
@@ -276,9 +291,9 @@ for i = 1, 9 do
     end)
 end
 
--------------------
+-------------------------
 --Battlegrounds Section--
--------------------
+-------------------------
 --Battlegrounds header and container for battlegrounds reputation bars
 local bgHeader = scrollChild:CreateFontString()
 bgHeader:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
@@ -287,14 +302,14 @@ bgHeader:SetTextColor(1, 0.82, 0, 1)
 bgHeader:SetText("Battlegrounds")
 local bgFrame = CreateFrame("Frame", nil, scrollChild)
 bgFrame:SetPoint("TOPLEFT", bgHeader, -25, 10)
-bgFrame:SetPoint("BOTTOMRIGHT", scrollChild, "TOPRIGHT", 0, -305)
+bgFrame:SetPoint("BOTTOMRIGHT", bgHeader, "TOPRIGHT", 0, -305) --was 305
 local bgbtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
 bgbtn:SetPoint("CENTER", bgHeader, "LEFT", -10 , 0)
 bgbtn:SetSize(20,16)
 bgbtn:SetText("-")
 bgbtn:SetScript("OnClick",function(self,button)
     if bgbtn:GetText() == "+" then
-        bgFrame:SetPoint("BOTTOMRIGHT", scrollChild, "TOPRIGHT", 0, -305)
+        bgFrame:SetPoint("BOTTOMRIGHT", bgHeader, "TOPRIGHT", 0, -305)
         bgFrame:Show()
         bgbtn:SetText("-")
     else
@@ -337,6 +352,69 @@ for i = 1, 13 do
     end)
 end
 
+------------------
+--Arenas Section--
+------------------
+--Arenas header and container for arenas reputation bars
+local arenaHeader = scrollChild:CreateFontString()
+arenaHeader:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+arenaHeader:SetPoint("TOPLEFT", bgFrame , "BOTTOMLEFT", 25, -35)
+arenaHeader:SetTextColor(1, 0.82, 0, 1)
+arenaHeader:SetText("Arenas")
+local arenaFrame = CreateFrame("Frame", nil, scrollChild)
+arenaFrame:SetPoint("TOPLEFT", arenaHeader, -25, 10)
+arenaFrame:SetPoint("BOTTOMRIGHT", arenaHeader, "TOPRIGHT", 0, -380)
+local arenabtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
+arenabtn:SetPoint("CENTER", arenaHeader, "LEFT", -10 , 0)
+arenabtn:SetSize(20,16)
+arenabtn:SetText("-")
+arenabtn:SetScript("OnClick",function(self,button)
+    if arenabtn:GetText() == "+" then
+        arenaFrame:SetPoint("BOTTOMRIGHT", arenaHeader, "TOPRIGHT", 0, -380)
+        arenaFrame:Show()
+        arenabtn:SetText("-")
+    else
+        arenaFrame:SetPoint("BOTTOMRIGHT", arenaHeader, "TOPRIGHT", 0, 10)
+        arenaFrame:Hide()
+        arenabtn:SetText("+")
+    end
+end)
+--Rep Bars for arenas
+local arenaBars = {}
+for i = 1, 15 do
+    arenaBars[i] = CreateFrame("Button", nil, arenaFrame, "ReputationBarTemplate")
+    arenaBars[i]:SetSize(270, 20)
+    arenaBars[i].Container:SetAllPoints()
+    arenaBars[i]:SetPoint("TOPLEFT", arenaFrame, 30, -25*i)
+    arenaBars[i].Container.ReputationBar:SetStatusBarColor(0, 1, 0)
+    arenaBars[i].Container.ReputationBar.BonusIcon:Hide()
+    arenaBars[i].Container.ReputationBar:SetFrameLevel(8)
+    arenaBars[i].Container.ExpandOrCollapseButton:Hide()
+    arenaBars[i].Container.Paragon:Hide()
+    arenaBars[i].Container.Name:SetText("    "..arenaNames[i])
+    arenaBars[i]:SetScript("OnEnter", function(self)
+        local _, barvalue, barmax = repStanding(FloorDB.Arenas[arenaIndexNames[i]])
+        self.Container.ReputationBar.FactionStanding:SetText(barvalue.."/"..barmax)
+        self.Container.ReputationBar.Highlight1:Show()
+        self.Container.ReputationBar.Highlight2:Show()
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+        GameTooltip:SetText(self.Container.Name:GetText(), nil, nil, nil, nil, true);
+        GameTooltip:Show();
+    end)
+    arenaBars[i]:SetScript("OnLeave", function(self)
+        local standing, barvalue, barmax = repStanding(FloorDB.Arenas[arenaIndexNames[i]])
+        self.Container.ReputationBar.FactionStanding:SetText(standing)
+        self.Container.ReputationBar:SetValue(barvalue/barmax)
+        self.Container.ReputationBar.Highlight1:Hide()
+        self.Container.ReputationBar.Highlight2:Hide()
+        GameTooltip:Hide()
+    end)
+    arenaBars[i]:SetScript("OnClick", function(self)
+    end)
+end
+
+
+
 --open button for the base frame (located on reputationframe) and update reps
 local btn = CreateFrame("Button", nil, ReputationFrame, "UIPanelButtonTemplate")
 btn:SetPoint("TOPRIGHT", -6 , -21)
@@ -346,15 +424,20 @@ btn:SetScript("OnClick",function(self,button)
     local standing, barvalue, barmax = repStanding(FloorDB.Raids.Aberrus)
     aberrusFloor.Container.ReputationBar.FactionStanding:SetText(standing)
     aberrusFloor.Container.ReputationBar:SetValue(barvalue/barmax)
-    for i = 1, 13 do
-        if i <= 9 then
-            standing, barvalue, barmax = repStanding(FloorDB.Dungeons[indexNames[i]])
-            dungBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
-            dungBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
+    for i = 1, 15 do
+        if i <= 13 then
+            if i <= 9 then
+                standing, barvalue, barmax = repStanding(FloorDB.Dungeons[indexNames[i]])
+                dungBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
+                dungBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
+            end
+            standing, barvalue, barmax = repStanding(FloorDB.Bgs[bgIndexNames[i]])
+            bgBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
+            bgBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
         end
-        standing, barvalue, barmax = repStanding(FloorDB.Bgs[bgIndexNames[i]])
-        bgBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
-        bgBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
+        standing, barvalue, barmax = repStanding(FloorDB.Arenas[arenaIndexNames[i]])
+        arenaBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
+        arenaBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
     end
     floorsFrame:Show()
 end)
