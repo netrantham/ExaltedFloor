@@ -190,15 +190,10 @@ aberrusFloor.Container:SetAllPoints()
 aberrusFloor:SetPoint("TOPLEFT", scrollChild, 30, -25)
 aberrusFloor.Container.ReputationBar:SetStatusBarColor(0, 1, 0)
 aberrusFloor.Container.ReputationBar.BonusIcon:Hide()
+aberrusFloor.Container.ReputationBar:SetFrameLevel(8) --so highlighting will appear above the bar
 aberrusFloor.Container.ExpandOrCollapseButton:Hide()
 aberrusFloor.Container.Paragon:Hide()
 aberrusFloor.Container.Name:SetText("    Aberrus, the Shadowed Floor")
-
---aberrusFloor.Container.ReputationBar.Highlight1:SetPoint("TOPLEFT",aberrusFloor.Container,"TOPLEFT",-2, 4);
---aberrusFloor.Container.ReputationBar.Highlight1:SetPoint("BOTTOMRIGHT",aberrusFloor.Container,"BOTTOMRIGHT",-10, -4);
-
---aberrusFloor.Container.ReputationBar.LeftTexture:SetPoint("TOPLEFT", aberrusFloor.Container.ReputationBar,"TOPLEFT", -1, 1)
---aberrusFloor.Container.ReputationBar.RightTexture:SetPoint("BOTTOMRIGHT", aberrusFloor.Container.ReputationBar,"BOTTOMRIGHT", -1, 1)
 
 aberrusFloor:SetScript("OnEnter", function(self)
     local _, barvalue, barmax = repStanding(FloorDB.Raids.Aberrus)
@@ -256,6 +251,7 @@ for i = 1, 9 do
     dungBars[i]:SetPoint("TOPLEFT", dungFrame, 30, -25*i)
     dungBars[i].Container.ReputationBar:SetStatusBarColor(0, 1, 0)
     dungBars[i].Container.ReputationBar.BonusIcon:Hide()
+    dungBars[i].Container.ReputationBar:SetFrameLevel(8)
     dungBars[i].Container.ExpandOrCollapseButton:Hide()
     dungBars[i].Container.Paragon:Hide()
     dungBars[i].Container.Name:SetText("    "..dungNames[i])
@@ -316,6 +312,7 @@ for i = 1, 13 do
     bgBars[i]:SetPoint("TOPLEFT", bgFrame, 30, -25*i)
     bgBars[i].Container.ReputationBar:SetStatusBarColor(0, 1, 0)
     bgBars[i].Container.ReputationBar.BonusIcon:Hide()
+    bgBars[i].Container.ReputationBar:SetFrameLevel(8)
     bgBars[i].Container.ExpandOrCollapseButton:Hide()
     bgBars[i].Container.Paragon:Hide()
     bgBars[i].Container.Name:SetText("    "..bgNames[i])
@@ -361,3 +358,4 @@ btn:SetScript("OnClick",function(self,button)
     end
     floorsFrame:Show()
 end)
+
