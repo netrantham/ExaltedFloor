@@ -5,18 +5,30 @@ function f:OnEvent(event, ...)
 end
 
 --used in PLAYER_DEAD compared to GetZoneText()
-local dungNames = {"Brackenhide Hollow", "Dawn of the Infinite", "Freehold", "Halls of Infusion", "Neltharion's Lair", "Neltharus", "Uldaman", "The Underrot", "The Vortex Pinnacle"}
+local raidNames = {"Aberrus, the Shadowed Crucible", "Amirdrassil, the Dreams Hope", "Vault of the Incarnates"}
+local dungNames = {"Atal'Dazar", "Black Rook Hold", "Brackenhide Hollow", "Darkheart Thicket", "Dawn of the Infinite", "Everbloom", "Freehold", "Halls of Infusion", "Neltharion's Lair", "Neltharus", "Uldaman", "The Underrot", "The Vortex Pinnacle", "Throne of the Tides", "Waycrest Manor"}
 local bgNames = {"Arathi Basin", "Battle for Gilneas", "Deepwind Gorge", "Eye of the Storm", "Seething Shore", "Silvershard Mines", "Temple of Kotmogu", "Twin Peaks", "Warsong Gulch", "Alterac Valley", "Ashran","Battle for Wintergrasp","Isle of Conquest"}
 local arenaNames = {"Ashamane's Fall", "Black Rook Hold Arena", "Blade's Edge Arena", "Dalaran Sewers", "Empyrean Domain", "Enigma Crucible", "Hook Point", "Maldraxxus Colliseum", "Mugambala", "Nagrand Arena", "Nokhudon Proving Grounds", "Ruins of Lordaeron", "The Robodrome", "Tiger's Peak", "Tol'viron Arena"}
 --used to access the appropriate index in FloorDB.Dungeons, likely a better way than parallel arrays
-local indexNames = {"Brackenhide", "DawnInfinite", "Freehold", "HOI", "NelthLair", "Neltharus", "Uldaman", "Underrot", "Vortex"}
+local raidIndexNames = {"Aberrus", "Amirdrassil", "VotI"}
+local indexNames = {"Atal", "Blackrook", "Brackenhide", "Darkheart", "DawnInfinite", "Everbloom", "Freehold", "HOI", "NelthLair", "Neltharus", "Uldaman", "Underrot", "Vortex", "ThroneTides", "Waycrest"}
 local bgIndexNames = {"Arathi", "Gilneas", "Deepwind", "EotS", "SeethingShore", "Silvershard", "Kotmogu", "TwinPeaks", "Warsong", "Alterac", "Ashran","Wintergrasp","IoC"}
 local arenaIndexNames = {"Ashmane","BRHArena","BEArena","Sewers","Empyrean","Enigma","HookPoint","Maldraxxus","Mugambala","Nagrand","Nokhudon","RoLord","Robodrome","TigerPeak", "Tolviron"}
 function f:ADDON_LOADED(event, addOnName)
     if addOnName == "ExaltedFloor" then
         FloorDB = FloorDB or {}--initialize DB
-        FloorDB.Raids = FloorDB.Raids or {Aberrus = 0}
-        FloorDB.Dungeons = FloorDB.Dungeons or {Underrot = 0, Neltharus = 0, Brackenhide = 0, HOI = 0, Uldaman = 0, Freehold = 0, Vortex = 0, NelthLair = 0, DawnInfinite = 0}
+        FloorDB.Raids = FloorDB.Raids or {}
+        for i = 1, #raidIndexNames do --adds all raids from index if they dont exist in the table
+            if FloorDB.Raids[raidIndexNames[i]] == nil then
+                FloorDB.Raids[raidIndexNames[i]] = 0
+            end
+        end
+        FloorDB.Dungeons = FloorDB.Dungeons or {}
+        for i = 1, #indexNames do --adds all dungeons from index if they dont exist in the table
+            if FloorDB.Dungeons[indexNames[i]] == nil then
+                FloorDB.Dungeons[indexNames[i]] = 0
+            end
+        end
         FloorDB.Bgs = FloorDB.Bgs or {Arathi = 0, Gilneas = 0, Deepwind = 0, EotS = 0, SeethingShore = 0, Silvershard = 0, Kotmogu = 0, TwinPeaks = 0, Warsong = 0, Alterac = 0, Ashran = 0,Wintergrasp = 0,IoC = 0}
         FloorDB.Arenas = FloorDB.Arenas or {Ashmane = 0,BRHArena = 0,BEArena = 0,Sewers = 0,Empyrean = 0,Enigma = 0,HookPoint = 0,Maldraxxus = 0,Mugambala = 0,Nagrand = 0,Nokhudon = 0,RoLord = 0,Robodrome = 0,TigerPeak = 0, Tolviron = 0}
         print("Floor loaded.")
@@ -24,37 +36,17 @@ function f:ADDON_LOADED(event, addOnName)
 end
 
 function f:PLAYER_DEAD()
-    --If died in Aberrus then increase Aberrus Floor Rep
     if HasPetUI() == false then --Makes pets not count as multiple player deaths
         local deadInParty = 0
-        zoneText = GetZoneText() --so GetZoneText isn't called repeatedly
-        if zoneText == "Aberrus, the Shadowed Crucible" then
-            --loop through raid group, if a member is dead increment deadParty
-            deadInParty = DeadInParty()
-            --increase rep based on amount of deadParty members
-            if deadInParty == 1 then--1st death in party = 100 rep
-                FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 100
-                DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 100.", 0.5,0.5,0.9)
-            elseif deadInParty == 2 then--2nd death in party = 60 rep
-                FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 60
-                DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 60.", 0.5,0.5,0.9)
-            elseif deadInParty < 6 then--3rd, 4th, 5th death in party = 40 rep
-                FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 40
-                DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 40.", 0.5,0.5,0.9)
-            else--else = 20 rep
-                FloorDB.Raids.Aberrus = FloorDB.Raids.Aberrus + 20
-                DEFAULT_CHAT_FRAME:AddMessage("Reputation with Aberrus floor increased by 20.", 0.5,0.5,0.9)
-            end
-            return
-        end
-        --if died in the dungeons, bgs, or arenas
-        for i = 1, 15 do --arenas
+        zoneText = GetZoneText()
+        --if died in dungeons, bgs, arenas, raid
+        for i = 1, 15 do --arenas and dungeons 
             if i <= 13 then --battlegrounds
-                if i <= 9 then --dungeons
-                    if zoneText == dungNames[i] then
+                if i <= 3 then --raid
+                    if zoneText == raidNames[i] then
                         deadInParty = DeadInParty()
-                        local gain = addDungeonRep(i,deadInParty)
-                        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[i].." floor increased by "..gain..".", 0.5,0.5,0.9)
+                        local gain = addRaidRep(i, deadInParty)
+                        DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..raidNames[i].." floor increased by "..gain..".", 0.5,0.5,0.9)
                         return
                     end
                 end
@@ -64,6 +56,12 @@ function f:PLAYER_DEAD()
                     DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..bgNames[i].." floor increased by 50.", 0.5,0.5,0.9)
                     return
                 end
+            end
+            if zoneText == dungNames[i] then
+                deadInParty = DeadInParty()
+                local gain = addDungeonRep(i,deadInParty)
+                DEFAULT_CHAT_FRAME:AddMessage("Reputation with "..dungNames[i].." floor increased by "..gain..".", 0.5,0.5,0.9)
+                return
             end
             if zoneText == arenaNames[i] then
                 if DeadInParty() == 1 then --first to die gains 100 rep
@@ -90,6 +88,22 @@ function addDungeonRep(index, dead)
     else--else = 30 rep
         FloorDB.Dungeons[indexNames[index]] = FloorDB.Dungeons[indexNames[index]] + 30
         return 30
+    end
+end
+
+function addRaidRep(index, dead)
+    if dead == 1 then--1st death in party = 100 rep
+        FloorDB.Raids[raidIndexNames[index]] = FloorDB.Raids[raidIndexNames[index]] + 100
+        return 100
+    elseif dead == 2 then--2nd death in party = 60 rep
+        FloorDB.Raids[raidIndexNames[index]] = FloorDB.Raids[raidIndexNames[index]] + 60
+        return 60
+    elseif dead < 6 then--else = 30 rep
+        FloorDB.Raids[raidIndexNames[index]] = FloorDB.Raids[raidIndexNames[index]] + 40
+        return 40
+    else
+        FloorDB.Raids[raidIndexNames[index]] = FloorDB.Raids[raidIndexNames[index]] + 20
+        return 20
     end
 end
 
@@ -181,25 +195,57 @@ raidHeader:SetPoint("TOPLEFT", 25, -10)
 raidHeader:SetTextColor(1, 0.82, 0, 1)
 raidHeader:SetText("Raids")
 local raidFrame = CreateFrame("Frame", nil, scrollChild)
-raidFrame:SetPoint("TOPLEFT", 0, -25)
-raidFrame:SetPoint("BOTTOMRIGHT", scrollChild, "TOPRIGHT", 0, -40)
+raidFrame:SetPoint("TOPLEFT", raidHeader, -25, 10)
+raidFrame:SetPoint("BOTTOMRIGHT", raidHeader, "TOPRIGHT", 0, -80)
 local raidbtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
 raidbtn:SetPoint("CENTER", raidHeader, "LEFT", -10 , 0)
 raidbtn:SetSize(20,16)
 raidbtn:SetText("-")
 raidbtn:SetScript("OnClick",function(self,button)
     if raidbtn:GetText() == "+" then
-        raidFrame:SetPoint("BOTTOMRIGHT", scrollChild, "TOPRIGHT", 0, -40)
+        raidFrame:SetPoint("BOTTOMRIGHT", raidHeader, "TOPRIGHT", 0, -80)
         raidFrame:Show()
         raidbtn:SetText("-")
     else
-        raidFrame:SetPoint("BOTTOMRIGHT", scrollChild, "TOPRIGHT", 0, -25)
+        raidFrame:SetPoint("BOTTOMRIGHT", raidHeader, "TOPRIGHT", 0, -15)
         raidFrame:Hide()
         raidbtn:SetText("+")
     end
 end)
---Rep Bar for Aberrus
-local aberrusFloor = CreateFrame("Button", nil, raidFrame, "ReputationBarTemplate")
+--Rep Bars for raids
+local raidBars = {}
+for i = 1, 3 do
+    raidBars[i] = CreateFrame("Button", nil, raidFrame, "ReputationBarTemplate")
+    raidBars[i]:SetSize(270, 20)
+    raidBars[i].Container:SetAllPoints()
+    raidBars[i]:SetPoint("TOPLEFT", raidFrame, 30, -25*i)
+    raidBars[i].Container.ReputationBar:SetStatusBarColor(0, 1, 0)
+    raidBars[i].Container.ReputationBar.BonusIcon:Hide()
+    raidBars[i].Container.ReputationBar:SetFrameLevel(8)
+    raidBars[i].Container.ExpandOrCollapseButton:Hide()
+    raidBars[i].Container.Paragon:Hide()
+    raidBars[i].Container.Name:SetText("    "..raidNames[i])
+    raidBars[i]:SetScript("OnEnter", function(self)
+        local _, barvalue, barmax = repStanding(FloorDB.Raids[raidIndexNames[i]])
+        self.Container.ReputationBar.FactionStanding:SetText(barvalue.."/"..barmax)
+        self.Container.ReputationBar.Highlight1:Show()
+        self.Container.ReputationBar.Highlight2:Show()
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+        GameTooltip:SetText(self.Container.Name:GetText(), nil, nil, nil, nil, true);
+        GameTooltip:Show();
+    end)
+    raidBars[i]:SetScript("OnLeave", function(self)
+        local standing, barvalue, barmax = repStanding(FloorDB.Raids[raidIndexNames[i]])
+        self.Container.ReputationBar.FactionStanding:SetText(standing)
+        self.Container.ReputationBar:SetValue(barvalue/barmax)
+        self.Container.ReputationBar.Highlight1:Hide()
+        self.Container.ReputationBar.Highlight2:Hide()
+        GameTooltip:Hide()
+    end)
+    raidBars[i]:SetScript("OnClick", function(self)
+    end)
+end
+--[[local aberrusFloor = CreateFrame("Button", nil, raidFrame, "ReputationBarTemplate")
 aberrusFloor:SetSize(270, 20)
 aberrusFloor.Container:SetAllPoints()
 aberrusFloor:SetPoint("TOPLEFT", scrollChild, 30, -25)
@@ -228,7 +274,7 @@ aberrusFloor:SetScript("OnLeave", function(self)
     GameTooltip:Hide()
 end)
 aberrusFloor:SetScript("OnClick", function(self)
-end)
+end)]]
 
 -------------------
 --Dungeon Section--
@@ -241,14 +287,14 @@ dungHeader:SetTextColor(1, 0.82, 0, 1)
 dungHeader:SetText("Dungeons")
 local dungFrame = CreateFrame("Frame", nil, scrollChild)
 dungFrame:SetPoint("TOPLEFT", dungHeader, -25, 10)
-dungFrame:SetPoint("BOTTOMRIGHT", dungHeader, "TOPRIGHT", 0, -205)
+dungFrame:SetPoint("BOTTOMRIGHT", dungHeader, "TOPRIGHT", 0, -355)
 local dungbtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
 dungbtn:SetPoint("CENTER", dungHeader, "LEFT", -10 , 0)
 dungbtn:SetSize(20,16)
 dungbtn:SetText("-")
 dungbtn:SetScript("OnClick",function(self,button)
     if dungbtn:GetText() == "+" then
-        dungFrame:SetPoint("BOTTOMRIGHT", dungHeader, "TOPRIGHT", 0, -205)
+        dungFrame:SetPoint("BOTTOMRIGHT", dungHeader, "TOPRIGHT", 0, -355)
         dungFrame:Show()
         dungbtn:SetText("-")
     else
@@ -259,7 +305,7 @@ dungbtn:SetScript("OnClick",function(self,button)
 end)
 --Rep Bars for the dungeons
 local dungBars = {}
-for i = 1, 9 do
+for i = 1, 15 do
     dungBars[i] = CreateFrame("Button", nil, dungFrame, "ReputationBarTemplate")
     dungBars[i]:SetSize(270, 20)
     dungBars[i].Container:SetAllPoints()
@@ -421,20 +467,24 @@ btn:SetPoint("TOPRIGHT", -6 , -21)
 btn:SetSize(50,40)
 btn:SetText("Floors")
 btn:SetScript("OnClick",function(self,button)
-    local standing, barvalue, barmax = repStanding(FloorDB.Raids.Aberrus)
+    --[[local standing, barvalue, barmax = repStanding(FloorDB.Raids.Aberrus)
     aberrusFloor.Container.ReputationBar.FactionStanding:SetText(standing)
-    aberrusFloor.Container.ReputationBar:SetValue(barvalue/barmax)
+    aberrusFloor.Container.ReputationBar:SetValue(barvalue/barmax)]]
     for i = 1, 15 do
         if i <= 13 then
-            if i <= 9 then
-                standing, barvalue, barmax = repStanding(FloorDB.Dungeons[indexNames[i]])
-                dungBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
-                dungBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
+            if i <= 3 then
+                standing, barvalue, barmax = repStanding(FloorDB.Raids[raidIndexNames[i]])
+                raidBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
+                raidBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
             end
             standing, barvalue, barmax = repStanding(FloorDB.Bgs[bgIndexNames[i]])
             bgBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
             bgBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
         end
+        standing, barvalue, barmax = repStanding(FloorDB.Dungeons[indexNames[i]])
+        dungBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
+        dungBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
+
         standing, barvalue, barmax = repStanding(FloorDB.Arenas[arenaIndexNames[i]])
         arenaBars[i].Container.ReputationBar.FactionStanding:SetText(standing)
         arenaBars[i].Container.ReputationBar:SetValue(barvalue/barmax)
