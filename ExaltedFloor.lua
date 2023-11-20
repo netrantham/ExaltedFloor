@@ -5,7 +5,7 @@ function f:OnEvent(event, ...)
 end
 
 --used in PLAYER_DEAD compared to GetZoneText()
-local raidNames = {"Aberrus, the Shadowed Crucible", "Amirdrassil, the Dreams Hope", "Vault of the Incarnates"}
+local raidNames = {"Aberrus, the Shadowed Crucible", "Amirdrassil, the Dream's Hope", "Vault of the Incarnates"}
 local dungNames = {"Atal'Dazar", "Black Rook Hold", "Brackenhide Hollow", "Darkheart Thicket", "Dawn of the Infinite", "Everbloom", "Freehold", "Halls of Infusion", "Neltharion's Lair", "Neltharus", "Uldaman", "The Underrot", "The Vortex Pinnacle", "Throne of the Tides", "Waycrest Manor"}
 local bgNames = {"Arathi Basin", "Battle for Gilneas", "Deepwind Gorge", "Eye of the Storm", "Seething Shore", "Silvershard Mines", "Temple of Kotmogu", "Twin Peaks", "Warsong Gulch", "Alterac Valley", "Ashran","Battle for Wintergrasp","Isle of Conquest"}
 local arenaNames = {"Ashamane's Fall", "Black Rook Hold Arena", "Blade's Edge Arena", "Dalaran Sewers", "Empyrean Domain", "Enigma Crucible", "Hook Point", "Maldraxxus Colliseum", "Mugambala", "Nagrand Arena", "Nokhudon Proving Grounds", "Ruins of Lordaeron", "The Robodrome", "Tiger's Peak", "Tol'viron Arena"}
